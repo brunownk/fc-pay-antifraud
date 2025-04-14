@@ -59,11 +59,16 @@ graph LR
 
 ### Installation Steps
 
-1. **Start the Gateway Service first**
+> ⚠️ **Important**: This service requires the FC Pay Gateway to be running first, as it depends on the Kafka broker and network configuration provided by the gateway service.
+
+1. **Ensure Gateway Service is running**
+   Before starting this service, make sure the FC Pay Gateway is up and running. If not, follow these steps:
    ```bash
    cd ../fc-pay-gateway
+   cp .env.example .env
    docker-compose up -d
    ```
+   Wait until all Gateway services are healthy before proceeding.
 
 2. **Clone the repository**
    ```bash
@@ -74,18 +79,29 @@ graph LR
 3. **Set up environment variables**
    ```bash
    cp .env.example .env
-   # The default environment variables are already configured for Docker
+   # The default environment variables are configured for Docker and Gateway integration
    ```
 
-4. **Start the service**
+4. **Start the Antifraud service**
    ```bash
    docker compose up -d
    ```
 
 5. **Verify the service is running**
    ```bash
+   # Check service status
    docker compose ps
+
+   # Check health endpoint
+   curl http://localhost:3001/health
    ```
+
+6. **Next Steps**
+   After this service is running successfully, you can proceed to set up the FC Pay Web interface:
+   ```bash
+   cd ../fc-pay-web
+   ```
+   Follow the instructions in the FC Pay Web README to complete the system setup.
 
 ## Docker Setup
 
