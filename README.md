@@ -2,6 +2,25 @@
 
 A study project implementing a basic fraud detection service with NestJS. Focused on learning microservices and event-driven architecture.
 
+## Navigation
+
+- [Main Repository](https://github.com/brunownk/fc-pay)
+- [Web Interface](https://github.com/brunownk/fc-pay-web)
+- [Gateway Service](https://github.com/brunownk/fc-pay-gateway)
+
+Fraud detection service for FC Pay system, built with NestJS. Implements basic fraud analysis rules and integrates with Kafka for event-driven communication.
+
+## Topics
+
+- nestjs
+- typescript
+- kafka
+- antifraud
+- fraud-detection
+- microservices
+- study-project
+- backend
+
 ## Features
 
 - Basic transaction analysis
