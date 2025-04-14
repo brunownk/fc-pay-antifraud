@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
+import * as kafkaLib from '@confluentinc/kafka-javascript';
+
 import { FraudService } from './fraud/fraud.service';
-import { FrequentHighValueSpecification } from './fraud/specifications/fraud-high-value.specification';
+import { FrequentHighValueSpecification } from './fraud/specifications/frequent-high-value.specification';
 import { SuspiciousAccountSpecification } from './fraud/specifications/suspicious-account.specification';
 import { UnusualAmountSpecification } from './fraud/specifications/unusual-amount.specification';
 import { FraudAggregateSpecification } from './fraud/specifications/fraud-aggregate.specification';
 import { InvoicesService } from './invoices.service';
 import { InvoicesController } from './invoices.controller';
+import { InvoicesConsumer } from './invoices.consumer';
+import { PublishProcessedInvoiceListener } from './events/publish-processed-invoice.listener';
 
 @Module({
   providers: [
@@ -17,14 +21,12 @@ import { InvoicesController } from './invoices.controller';
     {
       provide: 'FRAUD_SPECIFICATIONS',
       useFactory: (
-        frequentHighValueSpecification: FrequentHighValueSpecification,
-        suspiciousAccountSpecification: SuspiciousAccountSpecification,
-        unusualAmountSpecification: UnusualAmountSpecification,
-      ) => [
-        frequentHighValueSpecification,
-        suspiciousAccountSpecification,
-        unusualAmountSpecification,
-      ],
+        frequentHighValueSpec: FrequentHighValueSpecification,
+        suspiciousAccountSpec: SuspiciousAccountSpecification,
+        unusualAmountSpec: UnusualAmountSpecification,
+      ) => {
+        return [frequentHighValueSpec, suspiciousAccountSpec, unusualAmountSpec];
+      },
       inject: [
         FrequentHighValueSpecification,
         SuspiciousAccountSpecification,
@@ -32,7 +34,14 @@ import { InvoicesController } from './invoices.controller';
       ],
     },
     InvoicesService,
+    {
+      provide: kafkaLib.KafkaJS.Kafka,
+      useValue: new kafkaLib.KafkaJS.Kafka({
+        'bootstrap.servers': 'kafka:29092',
+      }),
+    },
+    PublishProcessedInvoiceListener,
   ],
-  controllers: [InvoicesController],
+  controllers: [InvoicesController, InvoicesConsumer],
 })
 export class InvoicesModule {}
