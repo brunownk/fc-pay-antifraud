@@ -1,72 +1,54 @@
-# Gateway de Pagamento - Imersão Full Cycle
+# FC Pay Antifraud
 
-## Sobre o Projeto
+A study project implementing a basic fraud detection service with NestJS. Focused on learning microservices and event-driven architecture.
 
-Este projeto foi desenvolvido durante a [Imersão Full Stack & Full Cycle](https://imersao.fullcycle.com.br/evento/), onde construímos um Gateway de Pagamento completo utilizando arquitetura de microsserviços.
+## Features
 
-O objetivo é demonstrar a construção de um sistema distribuído moderno, com separação de responsabilidades, comunicação assíncrona e análise de fraudes em tempo real.
+- Basic transaction analysis
+- Simple fraud detection rules
+- Kafka integration
+- PostgreSQL database with Prisma ORM
+- Basic REST API
 
-## Arquitetura
+## Tech Stack
 
-[Visualize a arquitetura completa aqui](https://link.excalidraw.com/readonly/Nrz6WjyTrn7IY8ZkrZHy)
+- NestJS
+- TypeScript
+- Apache Kafka
+- PostgreSQL
+- Prisma ORM
+- Docker
 
-### Componentes do Sistema
+## Getting Started
 
-- **Frontend (Next.js)**
-  - Interface do usuário para gerenciamento de contas e processamento de pagamentos
-  - Desenvolvido com Next.js para garantir performance e boa experiência do usuário
+1. Install dependencies:
+```bash
+npm install
+```
 
-- **Gateway (Go)**
-  - Sistema principal de processamento de pagamentos
-  - Gerencia contas, transações e coordena o fluxo de pagamentos
-  - Publica eventos de transação no Kafka para análise de fraude
+2. Set up environment variables:
+```env
+DATABASE_URL="postgresql://postgres:root@nestjs-db:5432/fc_pay_antifraud?schema=public"
+SUSPICIOUS_VARIATION_PERCENTAGE=50
+INVOICE_HISTORY_COUNT=5
+SUSPICIOUS_INVOICE_COUNT=3
+SUSPICIOUS_TIMEFRAME_HOURS=24
+```
 
-- **Apache Kafka**
-  - Responsável pela comunicação assíncrona entre API Gateway e Antifraude
-  - Garante confiabilidade na troca de mensagens entre os serviços
-  - Tópicos específicos para transações e resultados de análise
+3. Run with Docker:
+```bash
+docker-compose up -d
+```
 
-- **Antifraude (Nest.js)**
-  - Consome eventos de transação do Kafka
-  - Realiza análise em tempo real para identificar possíveis fraudes
-  - Publica resultados da análise de volta no Kafka
+## Study Focus
 
-## Fluxo de Comunicação
+This project focuses on:
+- NestJS fundamentals
+- Basic event-driven architecture
+- Introduction to Kafka
+- Simple fraud detection patterns
+- Basic database operations with Prisma
 
-1. Frontend realiza requisições para a API Gateway via REST
-2. Gateway processa as requisições e publica eventos de transação no Kafka
-3. Serviço Antifraude consome os eventos e realiza análise em tempo real
-4. Resultados das análises são publicados de volta no Kafka
-5. Gateway consome os resultados e finaliza o processamento da transação
+## License
 
-## Ordem de Execução dos Serviços
-
-Para executar o projeto completo, os serviços devem ser iniciados na seguinte ordem:
-
-1. **API Gateway (Go)** - Deve ser executado primeiro pois configura a rede Docker
-2. **Serviço Antifraude (Nest.js)** - Depende do Kafka configurado pelo Gateway
-3. **Frontend (Next.js)** - Interface de usuário que se comunica com a API Gateway
-
-## Instruções Detalhadas
-
-Cada componente do sistema possui instruções específicas de instalação e configuração em suas respectivas pastas:
-
-- **API Gateway**: Consulte o README na pasta `/go-gateway`
-- **Serviço Antifraude**: Consulte o README na pasta `/nestjs-antifraude` 
-- **Frontend**: Consulte o README na pasta `/next-frontend`
-
-> **Importante**: É fundamental seguir a ordem de execução mencionada acima, pois cada serviço depende dos anteriores para funcionar corretamente.
-
-## Pré-requisitos Gerais
-
-Para executar todos os componentes do projeto, você precisará ter instalado:
-
-- [Docker](https://www.docker.com/get-started)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- Git
-
-## Regras de Negócio Importantes
-
-- Transações acima de R$ 10.000 são automaticamente enviadas para análise e ficam com status "pendente"
-- Transações menores são processadas imediatamente
-- A interface mostra status diferenciados por cores: verde (aprovado), amarelo (pendente), vermelho (rejeitado)
+MIT
