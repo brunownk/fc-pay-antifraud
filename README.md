@@ -50,58 +50,145 @@ graph LR
 
 ### Prerequisites
 
-| Requirement | Version |
-|-------------|---------|
-| Node.js | 18.17+ |
-| Docker | Latest |
-| Docker Compose | Latest |
-| Running Gateway Service | Required |
+| Requirement | Version | Purpose |
+|-------------|---------|---------|
+| Node.js | 18+ | Runtime Environment |
+| Docker | Latest | Containerization |
+| Docker Compose | Latest | Service Orchestration |
+| FC Pay Gateway | Running | Kafka & Transaction Processing |
 
 ### Installation Steps
 
-> ⚠️ **Important**: This service requires the FC Pay Gateway to be running first, as it depends on the Kafka broker and network configuration provided by the gateway service.
-
-1. **Ensure Gateway Service is running**
-   Before starting this service, make sure the FC Pay Gateway is up and running. If not, follow these steps:
-   ```bash
-   cd ../fc-pay-gateway
-   cp .env.example .env
-   docker-compose up -d
-   ```
-   Wait until all Gateway services are healthy before proceeding.
-
-2. **Clone the repository**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/brunownk/fc-pay-antifraud.git
    cd fc-pay-antifraud
    ```
 
-3. **Set up environment variables**
+2. **Configure environment**
    ```bash
    cp .env.example .env
-   # The default environment variables are configured for Docker and Gateway integration
+   # The default environment variables are already configured for Docker
    ```
 
-4. **Start the Antifraud service**
+3. **Verify Gateway Service**
+
+   > ⚠️ **Important**: The Gateway service must be running and healthy before starting the Antifraud service.
+   > The Antifraud service depends on Kafka topics created by the Gateway.
+
    ```bash
-   docker compose up -d
+   # Check Gateway health
+   curl http://localhost:8080/health
+   # Expected: {"status":"ok"}
+
+   # Verify Kafka topics exist
+   docker exec fc-pay-gateway-kafka-1 kafka-topics --bootstrap-server kafka:29092 --list
+   # Should see:
+   # - pending_transactions
+   # - transaction_results
    ```
 
-5. **Verify the service is running**
+4. **Start the service**
    ```bash
-   # Check service status
-   docker compose ps
+   docker-compose up -d
+   ```
 
-   # Check health endpoint
+5. **Verify service health**
+   ```bash
+   # Check container status
+   docker-compose ps
+   # Expected: fc-pay-antifraud-app-1 ... (healthy)
+
+   # Check service logs
+   docker-compose logs -f app
+   # Look for: "Connected to Kafka" and "Listening for transactions"
+
+   # Check API health
    curl http://localhost:3001/health
+   # Expected: {"status":"ok"}
    ```
 
-6. **Next Steps**
-   After this service is running successfully, you can proceed to set up the FC Pay Web interface:
+### Service Architecture
+
+The Antifraud service:
+1. Consumes transactions from `pending_transactions` Kafka topic
+2. Analyzes each transaction for potential fraud
+3. Produces results to `transaction_results` topic
+4. Provides REST API for manual review and configuration
+
+### Development
+
+For local development:
+
+1. **Install dependencies**
    ```bash
-   cd ../fc-pay-web
+   npm install
    ```
-   Follow the instructions in the FC Pay Web README to complete the system setup.
+
+2. **Run database migrations**
+   ```bash
+   npx prisma migrate dev
+   ```
+
+3. **Start in development mode**
+   ```bash
+   npm run dev
+   ```
+
+### Troubleshooting
+
+1. **Kafka Connection Issues**
+   ```bash
+   # Check Kafka connectivity
+   docker-compose logs app | grep Kafka
+   
+   # Verify topics are accessible
+   docker exec fc-pay-gateway-kafka-1 kafka-consumer-groups \
+     --bootstrap-server kafka:29092 \
+     --list
+   ```
+
+2. **Database Issues**
+   ```bash
+   # Reset database (if needed)
+   npx prisma migrate reset
+   
+   # Check database status
+   docker-compose exec db pg_isready
+   ```
+
+3. **Common Error Messages**
+
+   - "Error: Connection refused to Kafka"
+     - Ensure Gateway service is running
+     - Check network connectivity
+     - Verify Kafka broker is healthy
+
+   - "Error: Cannot find pending_transactions topic"
+     - Verify Gateway service initialized correctly
+     - Check Kafka topics list
+     - Restart Gateway service if needed
+
+### API Documentation
+
+The service exposes the following endpoints:
+
+- `GET /health` - Service health check
+- `GET /metrics` - Service metrics
+- `POST /rules` - Create fraud detection rules
+- `GET /rules` - List current rules
+- `GET /transactions` - List processed transactions
+
+For detailed API documentation, visit `http://localhost:3001/docs` after starting the service.
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| PORT | Service port | 3001 |
+| DATABASE_URL | PostgreSQL connection string | postgresql://... |
+| KAFKA_BROKERS | Kafka brokers list | kafka:29092 |
+| KAFKA_GROUP_ID | Consumer group ID | antifraud-service |
 
 ## Docker Setup
 
