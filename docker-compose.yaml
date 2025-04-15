@@ -7,7 +7,7 @@ services:
     volumes:
       - .:/home/node/app
     networks:
-      - fc-pay-network
+      - fc-pay-gateway_default
     
   nestjs-db:
     image: postgres:16-alpine
@@ -17,8 +17,8 @@ services:
     ports:
       - 5433:5432
     networks:
-      - fc-pay-network
+      - fc-pay-gateway_default
       
 networks:
-  fc-pay-network:
+  fc-pay-gateway_default:
     external: true
